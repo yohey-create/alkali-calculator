@@ -365,18 +365,35 @@ function calculate() {
 }
 
 // ---------- 0-100スケーリング ----------
-function normalize(value, min, max) {
-  return ((value - min) / (max - min)) * 100;
+// マルセイユ石けん（オリーブ72% + ヤシ油28%）を50点基準としたスケーリング
+const MARSEILLE = {
+  hardness:         5.6,
+  lather_amount:    11.7,
+  lather_longevity: 15.2,
+  cleansing:        6.1,
+  gentleness:       5.2
+};
+
+const SCALE = {
+  hardness:         40,
+  lather_amount:    40,
+  lather_longevity: 20,
+  cleansing:        45,
+  gentleness:       45
+};
+
+function normalize(value, base, scale) {
+  return 50 + (value - base) / scale * 50;
+  // クランプなし・0〜100を超える場合もあり得るが意図的
 }
 
 function normalizeScores(scores) {
-  const clamp = v => Math.max(0, Math.min(100, v));
   return {
-    hardness:         clamp(normalize(scores.hardness,         -20,  50)),
-    lather_amount:    clamp(normalize(scores.lather_amount,      0,  60)),
-    lather_longevity: clamp(normalize(scores.lather_longevity,   0,  50)),
-    cleansing:        clamp(normalize(scores.cleansing,         -10,  60)),
-    gentleness:       clamp(normalize(-scores.irritation,       -50,  30))
+    hardness:         normalize(scores.hardness,          MARSEILLE.hardness,         SCALE.hardness),
+    lather_amount:    normalize(scores.lather_amount,     MARSEILLE.lather_amount,    SCALE.lather_amount),
+    lather_longevity: normalize(scores.lather_longevity,  MARSEILLE.lather_longevity, SCALE.lather_longevity),
+    cleansing:        normalize(scores.cleansing,         MARSEILLE.cleansing,        SCALE.cleansing),
+    gentleness:       normalize(-scores.irritation,       MARSEILLE.gentleness,       SCALE.gentleness)
   };
 }
 
