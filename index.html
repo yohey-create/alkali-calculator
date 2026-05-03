@@ -365,15 +365,18 @@ function calculate() {
 }
 
 // ---------- 0-100スケーリング ----------
+function normalize(value, min, max) {
+  return ((value - min) / (max - min)) * 100;
+}
+
 function normalizeScores(scores) {
-  // 経験的最大値で正規化（典型的なレシピ範囲を 0-100 にマッピング）
   const clamp = v => Math.max(0, Math.min(100, v));
   return {
-    cleansing:        clamp(scores.cleansing        / 50 * 100),
-    lather_amount:    clamp(scores.lather_amount    / 50 * 100),
-    lather_longevity: clamp(scores.lather_longevity / 50 * 100),
-    mildness:         clamp((30 - scores.irritation) / 60 * 100),
-    hardness:         clamp(scores.hardness         / 50 * 100)
+    hardness:         clamp(normalize(scores.hardness,         -20,  50)),
+    lather_amount:    clamp(normalize(scores.lather_amount,      0,  60)),
+    lather_longevity: clamp(normalize(scores.lather_longevity,   0,  50)),
+    cleansing:        clamp(normalize(scores.cleansing,         -10,  60)),
+    gentleness:       clamp(normalize(-scores.irritation,       -50,  30))
   };
 }
 
@@ -446,8 +449,8 @@ function renderChart(r) {
   if (r) {
     const n = normalizeScores(r.scores);
     data = isSolid
-      ? [n.cleansing, n.lather_amount, n.lather_longevity, n.mildness, n.hardness]
-      : [n.cleansing, n.lather_amount, n.lather_longevity, n.mildness];
+      ? [n.cleansing, n.lather_amount, n.lather_longevity, n.gentleness, n.hardness]
+      : [n.cleansing, n.lather_amount, n.lather_longevity, n.gentleness];
   } else {
     data = labels.map(() => 0);
   }
