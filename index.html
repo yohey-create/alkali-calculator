@@ -108,6 +108,12 @@
   .advice-list li { margin-bottom: 8px; line-height: 1.6; }
   .advice-list li strong { color: var(--primary-dark); }
   .advice-balanced { color: var(--primary-dark); font-weight: 500; padding: 8px 0; }
+  .info-details summary { font-size: 1rem; font-weight: 500; }
+  .info-content { margin-top: 12px; font-size: 0.9rem; }
+  .info-intro { color: var(--muted); margin: 0 0 16px; }
+  .info-item { margin-bottom: 18px; }
+  .info-item h3 { font-size: 0.95rem; color: var(--primary-dark); margin: 0 0 6px; font-weight: 600; }
+  .info-item p { margin: 0; line-height: 1.7; }
   .fa-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   .fa-table th, .fa-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border); }
   .fa-table th { background: var(--bg); font-weight: 500; color: var(--muted); }
@@ -221,6 +227,68 @@
     <div id="fa-area">
       <div class="empty-state">―</div>
     </div>
+  </div>
+
+  <!-- 指標の見方 -->
+  <div class="card">
+    <details class="info-details">
+      <summary>📖 指標の見方</summary>
+      <div class="info-content">
+        <p class="info-intro">各指標の意味と、高い・低い場合の特徴です。</p>
+
+        <div class="info-item">
+          <h3>■ 硬さ</h3>
+          <p>高い → 型出しが早い・溶けにくい・長持ちする<br>
+          低い → 柔らかくべたつく・熟成期間が長く必要</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ 泡量</h3>
+          <p>高い → 豊かな泡立ち・洗えた感が強い<br>
+          低い → 泡立ちが少ない・物足りなさを感じやすい</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ 泡持ち</h3>
+          <p>高い → 泡が長続きする・使いやすい<br>
+          低い → 泡がすぐ消える</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ 洗浄力</h3>
+          <p>高い → 皮脂をしっかり落とす・さっぱりした洗い上がり<br>
+          低い → マイルドな洗浄・しっとり感が残る</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ 肌へのやさしさ</h3>
+          <p>高い → 敏感肌・乾燥肌向き・刺激が少ない<br>
+          低い → 肌への刺激が強め・乾燥しやすい</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ INS値とは？</h3>
+          <p>石けんの硬さ・泡立ち・使用感を総合的に示す指標です。<br>
+          推奨範囲：136〜170<br>
+          高い（170以上）→ 硬くて泡立ちが良いが刺激が強め<br>
+          低い（136以下）→ 柔らかくマイルドだが熟成期間が長く必要</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ 熟成期間（キュアリング）とは？</h3>
+          <p>型から出した石けんを風通しの良い場所で寝かせる期間のことです。
+          この間に余分な水分が抜けて石けんが硬く締まり、アルカリが安定して肌にやさしい状態になります。
+          固形石けんは一般的に4〜6週間、オリーブ油が多い処方では数ヶ月必要になることもあります。</p>
+        </div>
+
+        <div class="info-item">
+          <h3>■ スコアの基準について</h3>
+          <p>すべての指標はマルセイユ石けん（オリーブ油72％＋ヤシ油28％）を基準として相対評価しています。
+          何百年も使われてきた伝統的な処方を「普通の石けん」の基準としています。
+          スコアは参考値であり、実際の使用感は製法・水質・使い方によっても異なります。</p>
+        </div>
+      </div>
+    </details>
   </div>
 
   <footer>
