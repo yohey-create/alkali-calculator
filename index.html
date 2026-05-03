@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手作り石けんアルカリ計算機</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --primary: #6b8e7f;
+    --primary-dark: #4a6b5e;
+    --bg: #faf7f2;
+    --card: #ffffff;
+    --border: #e0d8cc;
+    --text: #2c2c2c;
+    --muted: #777;
+    --warn-bg: #fff6e5;
+    --warn-border: #f0c060;
+    --danger-bg: #ffe8e0;
+    --danger-border: #d96b50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 16px;
+    line-height: 1.6;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 8px; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary-dark); border-left: 4px solid var(--primary); padding-left: 10px; }
+  .safety-banner {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+  .safety-banner strong { color: var(--danger-border); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .row > select { flex: 1; min-width: 160px; }
+  .row > input[type="number"] { width: 100px; }
+  .row > .unit { color: var(--muted); font-size: 0.9rem; }
+  label { font-weight: 500; }
+  input[type="number"], select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: white;
+  }
+  input[type="number"]:focus, select:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
+  button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  button:hover { background: var(--primary-dark); }
+  button.secondary { background: white; color: var(--primary-dark); border: 1px solid var(--primary); }
+  button.danger { background: transparent; color: var(--danger-border); padding: 4px 8px; }
+  .radio-group { display: flex; gap: 16px; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer; }
+  details { margin-top: 12px; }
+  details summary { cursor: pointer; color: var(--primary-dark); font-size: 0.95rem; padding: 6px 0; }
+  details .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px 12px;
+    align-items: center;
+    margin-top: 8px;
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 6px;
+  }
+  details .settings-grid label { font-size: 0.9rem; }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .result-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .result-item .label { font-size: 0.8rem; color: var(--muted); }
+  .result-item .value { font-size: 1.4rem; font-weight: 600; color: var(--primary-dark); }
+  .result-item .unit { font-size: 0.85rem; color: var(--muted); margin-left: 2px; }
+  .result-item .sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .chart-wrap { max-width: 480px; margin: 0 auto; }
+  .fa-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .fa-table th, .fa-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border); }
+  .fa-table th { background: var(--bg); font-weight: 500; color: var(--muted); }
+  .warning {
+    background: var(--warn-bg);
+    border-left: 4px solid var(--warn-border);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .add-btn-wrap { margin-top: 8px; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 24px 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+  .empty-state { color: var(--muted); text-align: center; padding: 24px; font-size: 0.9rem; }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.3rem; }
+    .row > select { min-width: 120px; }
+    .row > input[type="number"] { width: 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🧼 手作り石けんアルカリ計算機</h1>
+
+  <div class="safety-banner">
+    <strong>⚠️ 安全上の注意：</strong>
+    苛性ソーダ（NaOH）・苛性カリ（KOH）は強アルカリで、皮膚・目に重篤な損傷を与えます。
+    必ずゴーグル・手袋・長袖を着用し、換気の良い場所で扱ってください。
+  </div>
+
+  <!-- 石けん形態 -->
+  <div class="card">
+    <h2>石けんの形態</h2>
+    <div class="radio-group">
+      <label><input type="radio" name="soap-type" value="solid" checked> 固形石けん（NaOH）</label>
+      <label><input type="radio" name="soap-type" value="liquid"> 液体石けん（KOH）</label>
+    </div>
+  </div>
+
+  <!-- 油脂入力 -->
+  <div class="card">
+    <h2>油脂レシピ</h2>
+    <div id="oils-list"></div>
+    <div class="add-btn-wrap">
+      <button id="add-oil" class="secondary">＋ 油脂を追加</button>
+    </div>
+
+    <details>
+      <summary>詳細設定（純度・鹸化率・水分量）</summary>
+      <div class="settings-grid">
+        <label>NaOH純度</label>
+        <input type="number" id="naoh-purity" value="99" min="80" max="100" step="0.5">
+        <span class="unit">%</span>
+
+        <label>KOH純度</label>
+        <input type="number" id="koh-purity" value="85" min="80" max="100" step="0.5">
+        <span class="unit">%</span>
+
+        <label>鹸化率</label>
+        <input type="number" id="sap-rate" value="95" min="50" max="120" step="1">
+        <span class="unit">%</span>
+
+        <label>水分量（対油脂比）</label>
+        <input type="number" id="water-ratio" value="33" min="10" max="200" step="1">
+        <span class="unit">%</span>
+      </div>
+    </details>
+  </div>
+
+  <!-- 警告 -->
+  <div id="warnings"></div>
+
+  <!-- 結果 -->
+  <div class="card">
+    <h2>計算結果</h2>
+    <div id="results-area">
+      <div class="empty-state">油脂と重量を入力してください</div>
+    </div>
+  </div>
+
+  <!-- レーダーチャート -->
+  <div class="card">
+    <h2>石けん特性</h2>
+    <div class="chart-wrap">
+      <canvas id="radar-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- 脂肪酸プロファイル -->
+  <div class="card">
+    <h2>脂肪酸プロファイル</h2>
+    <div id="fa-area">
+      <div class="empty-state">―</div>
+    </div>
+  </div>
+
+  <footer>
+    本ツールの計算結果は参考値です。実際の石けん作りでは必ず安全対策を行ってください。<br>
+    鹸化価は産地・ロットによりばらつきがあります。特性スコアは職人知見ベースの近似値で、処方間の相対比較用です。
+  </footer>
+</div>
+
+<script>
+//=========================================================================
+// 石けんアルカリ計算機
+//=========================================================================
+
+let OILS_DB = [];
+let recipeRows = [];
+let radarChart = null;
+let nextRowId = 1;
+
+// ---------- データ読込 ----------
+async function loadOils() {
+  try {
+    const res = await fetch('oils.json');
+    OILS_DB = await res.json();
+    addOilRow();
+    renderAll();
+  } catch (e) {
+    document.getElementById('oils-list').innerHTML =
+      '<div class="warning">oils.jsonの読み込みに失敗しました。サーバー経由で開いてください（file://では動作しません）。</div>';
+  }
+}
+
+// ---------- 油脂行のUI ----------
+function addOilRow() {
+  if (recipeRows.length >= 10) return;
+  const id = nextRowId++;
+  recipeRows.push({ id, oilName: '', weight: 0 });
+  renderOilsList();
+}
+
+function removeOilRow(id) {
+  recipeRows = recipeRows.filter(r => r.id !== id);
+  renderOilsList();
+  renderAll();
+}
+
+function renderOilsList() {
+  const list = document.getElementById('oils-list');
+  list.innerHTML = '';
+  recipeRows.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'row';
+    const opts = ['<option value="">― 油脂を選択 ―</option>']
+      .concat(OILS_DB.map(o => `<option value="${o.name}" ${o.name === row.oilName ? 'selected' : ''}>${o.name}</option>`))
+      .join('');
+    div.innerHTML = `
+      <select data-id="${row.id}" class="oil-select">${opts}</select>
+      <input type="number" class="oil-weight" data-id="${row.id}" value="${row.weight || ''}" min="0" step="1" placeholder="重量">
+      <span class="unit">g</span>
+      <button class="danger" data-id="${row.id}" aria-label="削除">✕</button>
+    `;
+    list.appendChild(div);
+  });
+
+  // バインド
+  list.querySelectorAll('.oil-select').forEach(el => {
+    el.addEventListener('change', e => {
+      const r = recipeRows.find(x => x.id == e.target.dataset.id);
+      if (r) r.oilName = e.target.value;
+      renderAll();
+    });
+  });
+  list.querySelectorAll('.oil-weight').forEach(el => {
+    el.addEventListener('input', e => {
+      const r = recipeRows.find(x => x.id == e.target.dataset.id);
+      if (r) r.weight = parseFloat(e.target.value) || 0;
+      renderAll();
+    });
+  });
+  list.querySelectorAll('button.danger').forEach(el => {
+    el.addEventListener('click', e => removeOilRow(parseInt(e.target.dataset.id)));
+  });
+}
+
+// ---------- 計算ロジック ----------
+function getActiveOils() {
+  return recipeRows
+    .map(r => ({ db: OILS_DB.find(o => o.name === r.oilName), weight: r.weight }))
+    .filter(o => o.db && o.weight > 0);
+}
+
+function calculate() {
+  const oils = getActiveOils();
+  if (oils.length === 0) return null;
+
+  const soapType = document.querySelector('input[name="soap-type"]:checked').value;
+  const naohPurity = parseFloat(document.getElementById('naoh-purity').value) || 99;
+  const kohPurity  = parseFloat(document.getElementById('koh-purity').value)  || 85;
+  const sapRate    = parseFloat(document.getElementById('sap-rate').value)    || 95;
+  const waterRatio = parseFloat(document.getElementById('water-ratio').value) || 33;
+
+  const totalOilWeight = oils.reduce((s, o) => s + o.weight, 0);
+
+  // 脂肪酸プロファイル（重量加重平均）
+  const FA_KEYS = ['C12','C14','C16','C18','C181','C182','C183','C181OH'];
+  const FA = Object.fromEntries(FA_KEYS.map(k => [k, 0]));
+  oils.forEach(o => {
+    const ratio = o.weight / totalOilWeight;
+    FA_KEYS.forEach(k => { FA[k] += (o.db.fatty_acids[k] || 0) * ratio; });
+  });
+
+  // 理論アルカリ量
+  const naoh_theory = oils.reduce((s, o) => s + o.weight * o.db.sap_naoh, 0);
+  const koh_theory  = oils.reduce((s, o) => s + o.weight * o.db.sap_koh,  0);
+
+  // 純度・鹸化率補正後の実投入量
+  const naoh_actual = (naoh_theory * sapRate / 100) / (naohPurity / 100);
+  const koh_actual  = (koh_theory  * sapRate / 100) / (kohPurity  / 100);
+
+  // 水分量
+  const water = totalOilWeight * waterRatio / 100;
+
+  // クエン酸中和量（液体・鹸化率>100%のみ）
+  let citric_acid = 0;
+  if (soapType === 'liquid' && sapRate > 100) {
+    const excess_koh = koh_theory * (sapRate - 100) / 100 / (kohPurity / 100);
+    citric_acid = excess_koh * 0.96;
+  }
+
+  // INS値
+  const ins = oils.reduce((s, o) => {
+    const ratio = o.weight / totalOilWeight;
+    return s + (o.db.sap_koh * 1000 - o.db.iv) * ratio;
+  }, 0);
+
+  // 特性スコア
+  const scores = {
+    hardness:
+      FA.C12 * 0.5 + FA.C14 * 0.4 + FA.C16 * 0.3 + FA.C18 * 0.3
+      - FA.C181 * 0.1 - FA.C182 * 0.2,
+    lather_amount:
+      FA.C12 * 0.6 + FA.C14 * 0.5 + FA.C16 * 0.1 + FA.C181OH * 0.2,
+    lather_longevity:
+      FA.C16 * 0.3 + FA.C18 * 0.3 + FA.C181 * 0.2 + FA.C181OH * 0.5,
+    cleansing:
+      FA.C12 * 0.6 + FA.C14 * 0.5 + FA.C16 * 0.1
+      - FA.C181 * 0.1,
+    irritation:
+      FA.C12 * 0.5 + FA.C14 * 0.3
+      - FA.C181 * 0.2 - FA.C182 * 0.3 - FA.C181OH * 0.1
+  };
+
+  return {
+    soapType, totalOilWeight, FA,
+    naoh_actual, koh_actual, water, citric_acid, ins, scores,
+    sapRate, oils
+  };
+}
+
+// ---------- 0-100スケーリング ----------
+function normalizeScores(scores) {
+  // 経験的最大値で正規化（典型的なレシピ範囲を 0-100 にマッピング）
+  const clamp = v => Math.max(0, Math.min(100, v));
+  return {
+    cleansing:        clamp(scores.cleansing        / 50 * 100),
+    lather_amount:    clamp(scores.lather_amount    / 50 * 100),
+    lather_longevity: clamp(scores.lather_longevity / 50 * 100),
+    mildness:         clamp((30 - scores.irritation) / 60 * 100),
+    hardness:         clamp(scores.hardness         / 50 * 100)
+  };
+}
+
+// ---------- 表示 ----------
+function renderResults(r) {
+  const area = document.getElementById('results-area');
+  if (!r) { area.innerHTML = '<div class="empty-state">油脂と重量を入力してください</div>'; return; }
+
+  const isSolid = r.soapType === 'solid';
+  const alkaliLabel = isSolid ? 'NaOH投入量' : 'KOH投入量';
+  const alkaliValue = isSolid ? r.naoh_actual : r.koh_actual;
+  const insRange = (r.ins >= 136 && r.ins <= 170) ? '✓' : '⚠';
+
+  let html = `
+    <div class="results-grid">
+      <div class="result-item">
+        <div class="label">${alkaliLabel}</div>
+        <div class="value">${alkaliValue.toFixed(1)}<span class="unit">g</span></div>
+        <div class="sub">純度・鹸化率補正済</div>
+      </div>
+      <div class="result-item">
+        <div class="label">水分量</div>
+        <div class="value">${r.water.toFixed(0)}<span class="unit">g</span></div>
+      </div>
+      <div class="result-item">
+        <div class="label">油脂総量</div>
+        <div class="value">${r.totalOilWeight.toFixed(0)}<span class="unit">g</span></div>
+      </div>
+      <div class="result-item">
+        <div class="label">INS値 ${insRange}</div>
+        <div class="value">${r.ins.toFixed(0)}</div>
+        <div class="sub">推奨 136〜170</div>
+      </div>`;
+  if (r.citric_acid > 0) {
+    html += `
+      <div class="result-item">
+        <div class="label">クエン酸量</div>
+        <div class="value">${r.citric_acid.toFixed(1)}<span class="unit">g</span></div>
+        <div class="sub">過剰KOH中和用</div>
+      </div>`;
+  }
+  html += `</div>`;
+  area.innerHTML = html;
+}
+
+function renderFA(r) {
+  const area = document.getElementById('fa-area');
+  if (!r) { area.innerHTML = '<div class="empty-state">―</div>'; return; }
+  const labels = {
+    C12:'C12 ラウリン', C14:'C14 ミリスチン', C16:'C16 パルミチン', C18:'C18 ステアリン',
+    C181:'C18:1 オレイン', C182:'C18:2 リノール', C183:'C18:3 リノレン', C181OH:'C18:1-OH リシノール'
+  };
+  let html = '<table class="fa-table"><thead><tr>';
+  Object.values(labels).forEach(l => html += `<th>${l}</th>`);
+  html += '</tr></thead><tbody><tr>';
+  Object.keys(labels).forEach(k => html += `<td>${(r.FA[k] || 0).toFixed(1)}%</td>`);
+  html += '</tr></tbody></table>';
+  area.innerHTML = html;
+}
+
+function renderChart(r) {
+  const ctx = document.getElementById('radar-chart');
+  const isSolid = r && r.soapType === 'solid';
+
+  const labels = isSolid
+    ? ['洗浄力', '泡量', '泡持ち', '肌へのやさしさ', '硬さ']
+    : ['洗浄力', '泡量', '泡持ち', '肌へのやさしさ'];
+
+  let data;
+  if (r) {
+    const n = normalizeScores(r.scores);
+    data = isSolid
+      ? [n.cleansing, n.lather_amount, n.lather_longevity, n.mildness, n.hardness]
+      : [n.cleansing, n.lather_amount, n.lather_longevity, n.mildness];
+  } else {
+    data = labels.map(() => 0);
+  }
+
+  const cfg = {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: '石けん特性',
+        data,
+        backgroundColor: 'rgba(107, 142, 127, 0.25)',
+        borderColor: 'rgba(74, 107, 94, 0.9)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(74, 107, 94, 1)',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, backdropColor: 'transparent', color: '#999' },
+          pointLabels: { font: { size: 13 } },
+          grid: { color: '#ddd' },
+          angleLines: { color: '#ddd' }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  };
+
+  if (radarChart) {
+    radarChart.destroy();
+  }
+  radarChart = new Chart(ctx, cfg);
+}
+
+function renderWarnings(r) {
+  const area = document.getElementById('warnings');
+  if (!r) { area.innerHTML = ''; return; }
+
+  const msgs = [];
+  const oxidizingNames = ['ローズヒップ油', 'ヘンプシード油', '月見草油'];
+  const oxidizingPct = r.oils
+    .filter(o => oxidizingNames.includes(o.db.name))
+    .reduce((s, o) => s + (o.weight / r.totalOilWeight) * 100, 0);
+
+  if (oxidizingPct > 10) {
+    msgs.push('酸化しやすい油脂（ローズヒップ・ヘンプシード・月見草）の合計が10%を超えています。使用期限にご注意ください。');
+  }
+  if (r.ins < 136) {
+    msgs.push('INS値が136未満です。石けんが柔らかくなる可能性があります。キュアリングを長めに。');
+  }
+  if (r.ins > 170) {
+    msgs.push('INS値が170を超えています。洗浄力・刺激が強めになる可能性があります。');
+  }
+  if (r.soapType === 'solid' && r.sapRate < 90) {
+    msgs.push('鹸化率が90%未満です。べたつきや固まりにくさが出る可能性があります。');
+  }
+
+  area.innerHTML = msgs.map(m => `<div class="warning">⚠ ${m}</div>`).join('');
+}
+
+// ---------- 全描画 ----------
+function renderAll() {
+  const r = calculate();
+  renderResults(r);
+  renderFA(r);
+  renderChart(r);
+  renderWarnings(r);
+}
+
+// ---------- イベント ----------
+document.getElementById('add-oil').addEventListener('click', addOilRow);
+document.querySelectorAll('input[name="soap-type"]').forEach(el => {
+  el.addEventListener('change', renderAll);
+});
+['naoh-purity', 'koh-purity', 'sap-rate', 'water-ratio'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderAll);
+});
+
+// ---------- 初期化 ----------
+loadOils();
+</script>
+</body>
+</html>
